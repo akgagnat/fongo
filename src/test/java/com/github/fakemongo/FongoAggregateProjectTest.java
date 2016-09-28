@@ -1081,6 +1081,19 @@ public class FongoAggregateProjectTest {
     collection.aggregate(fongoRule.parseList("[{$match: {liked: {$ne: null}}}, {$project: {viewCount: 1, likedCount: {$size: [\"$liked\"]}, liked: 1} }, {$sort: {viewCount: -1, likedCount: -1}}, {$limit: 1}]"));
   }
 
+  @Test
+  public void should_count_size_of_array() {
+    // Given
+    DBCollection collection = fongoRule.newCollection();
+    collection.insert(new BasicDBObject("_id", 1).append("liked", Util.list("one", "two", "three")).append("viewCount", 2000));
+
+    // When
+    AggregationOutput output = collection.aggregate(fongoRule.parseList("[{$project: {\"_id\": 1, likedCount: {$size: \"$liked\"}} }]"));
+
+    // Then
+    Assertions.assertThat(output.results()).isEqualTo(fongoRule.parseList("[{\"_id\":1, \"likedCount\":3}]"));
+  }
+
   private DBCollection createTestCollection() {
     DBCollection collection = fongoRule.newCollection();
     collection.insert(new BasicDBObject("myId", "p0").append("date", 1));
